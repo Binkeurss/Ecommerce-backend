@@ -24,6 +24,7 @@ class Database {
       .connect(connectString)
       .then((_) => {
         countConnect();
+        console.log(`connectString: `, connectString);
         console.log(`Connected Mongodb Success Singleton`);
       })
       .catch((err) => console.log(`Error Connect Singleton: `, err));
