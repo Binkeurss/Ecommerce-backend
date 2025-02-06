@@ -15,6 +15,7 @@ class AccessController {
       next(error);
     }
   };
+
   signUp = async (req, res, next) => {
     try {
       /**
@@ -25,6 +26,19 @@ class AccessController {
       let result = await accessService.signUp({ name, email, password });
       return res.status(201).json({
         code: "201",
+        metadata: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  signOut = async (req, res, next) => {
+    try {
+      const result = await accessService.signOut({ keyStore: req.keyStore });
+      return res.status(200).json({
+        code: "200",
+        message: "Sign Out success!",
         metadata: result,
       });
     } catch (error) {

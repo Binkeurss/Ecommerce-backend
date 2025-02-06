@@ -1,9 +1,16 @@
 "use strict";
 
+const { mongoose } = require("mongoose");
 const keyTokenModel = require("../models/keyToken.model");
+const { NotFoundError } = require("../core/error.response");
 
 class keyTokenService {
-  static createKeyToken = async ({ userId, publicKey, privateKey, refreshToken }) => {
+  static createKeyToken = async ({
+    userId,
+    publicKey,
+    privateKey,
+    refreshToken,
+  }) => {
     try {
       // level 0
       const publicKeyString = publicKey.toString();
@@ -39,6 +46,24 @@ class keyTokenService {
     } catch (error) {
       return error;
     }
+  };
+
+  static findByUserId = async (userId) => {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new NotFoundError("userId is invalid!");
+    }
+    const results = await keyTokenModel.findOne({ user: userId }).lean();
+    return results;
+  };
+
+  static removeKeyById = async (id) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundError("id is invalid!");
+    }
+    const result = await keyTokenModel.deleteOne({
+      _id: new Types.ObjectId(id),
+    });
+    return result;
   };
 }
 
