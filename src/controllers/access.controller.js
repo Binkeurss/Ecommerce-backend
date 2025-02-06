@@ -9,7 +9,6 @@ class AccessController {
        * 200 OK
        * 201 CREATED
        */
-      console.log(`[P]::signUp::`, req.body);
       const { name, email, password } = req.body;
       let result = await accessService.signUp({name, email, password});
       return res.status(201).json({
