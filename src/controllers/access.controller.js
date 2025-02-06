@@ -3,6 +3,18 @@
 const accessService = require("../services/access.service");
 
 class AccessController {
+  signIn = async (req, res, next) => {
+    try {
+      // const { email, password } = req.body;
+      let result = await accessService.signIn(req.body);
+      return res.status(201).json({
+        code: "201",
+        metadata: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
   signUp = async (req, res, next) => {
     try {
       /**
@@ -10,9 +22,9 @@ class AccessController {
        * 201 CREATED
        */
       const { name, email, password } = req.body;
-      let result = await accessService.signUp({name, email, password});
+      let result = await accessService.signUp({ name, email, password });
       return res.status(201).json({
-        code: "20001",
+        code: "201",
         metadata: result,
       });
     } catch (error) {

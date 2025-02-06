@@ -34,6 +34,7 @@ class OK extends SuccessResponse {
     statusCode = statusCode.OK,
     reasonStatusCode = ReasonStatusCode.OK,
     metadata,
+    options = {}
   }) {
     super({ message, statusCode, reasonStatusCode, metadata });
   }

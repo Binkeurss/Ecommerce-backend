@@ -15,11 +15,19 @@ const keyTokenSchema = new mongoose.Schema(
     },
     publicKey: {
       type: String,
-      require: true,
+      required: true,
+    },
+    privateKey: {
+      type: String,
+      required: true,
+    },
+    refreshTokensUsed: {
+      type: Array,
+      default: [], // Những RT đã được sử dụng
     },
     refreshToken: {
-      type: Array,
-      default: [],
+      type: String,
+      required: true,
     },
   },
   {
