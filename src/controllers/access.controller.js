@@ -3,6 +3,19 @@
 const accessService = require("../services/access.service");
 
 class AccessController {
+  handlerRefreshToken = async (req, res, next) => {
+    const refreshToken = req.body.refreshToken;
+    try {
+      let result = await accessService.handlerRefreshToken(refreshToken);
+      return res.status(201).json({
+        code: "201",
+        metadata: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   signIn = async (req, res, next) => {
     try {
       // const { email, password } = req.body;

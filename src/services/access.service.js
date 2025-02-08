@@ -4,11 +4,11 @@ const shopModel = require("../models/shop.model");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const keyTokenService = require("./keyToken.service");
-const { createTokensPair } = require("../auth/authUtils");
+const { createTokensPair, verifyJWT } = require("../auth/authUtils");
 const { getInforData } = require("../utils");
 const {
   BadRequestError,
-  ConflictRequestEror,
+  ForbiddenError,
   AuthFailureError,
 } = require("../core/error.response");
 const { shopService } = require("./shop.service");
@@ -113,10 +113,12 @@ class accessService {
       console.log(`Create tokens Success: `, tokens);
 
       // Lưu xuống db: Keys (lưu xuống db và đồng thời trả về 2 string publicKey và privateKey -> Cần đưa về format PEM để sử dụng cho việc tạo tokens)
+      const refreshToken = tokens.refreshToken;
       const keyStore = await keyTokenService.createKeyToken({
         userId: newShop._id,
         publicKey,
         privateKey,
+        refreshToken
       });
       if (!keyStore) {
         throw new BadRequestError("Error: keyStore error!");
@@ -140,6 +142,60 @@ class accessService {
   static signOut = async ({ keyStore }) => {
     const delKey = await keyTokenService.removeKeyById(keyStore._id);
     return delKey;
+  };
+
+  /**
+   * check this token used?
+   *
+   */
+  static handlerRefreshToken = async (refreshToken) => {
+    // Check xem token đã được sử dụng chưa
+    const foundToken = await keyTokenService.findByRefreshTokenUsed(
+      refreshToken
+    );
+    // Nếu có
+    if (foundToken) {
+      // Decode who use this used refreshToken
+      // Tại sao lại là userId, email => Vì lúc sign để tạo ra RT và AT thì payload được gửi gồm userId và email
+      const { userId, email } = await verifyJWT(
+        refreshToken,
+        foundToken.publicKey
+      );
+      console.log("[1]--: ", { userId, email });
+      await keyTokenService.deleteKeyById(userId);
+      throw new ForbiddenError("Something wrong happend! Please reSignIn!");
+    }
+
+    // Nếu không, bình thường
+    const holderToken = await keyTokenService.findByRefreshToken(refreshToken);
+    if (!holderToken) throw new AuthFailureError("Shop not registed!");
+    // verifyToken
+    const { userId, email } = await verifyJWT(
+      refreshToken,
+      holderToken.publicKey
+    );
+    console.log("[2]--: ", { userId, email });
+    // check userId
+    const foundShop = await shopService.findByEmail({ email });
+    if (!foundShop)
+      throw new AuthFailureError("Shop not registed! (foundShop)");
+
+    // create 1 cặp Token mới
+    const newTokens = await createTokensPair(
+      { userId, email },
+      holderToken.publicKey,
+      holderToken.privateKey
+    );
+    // update token
+    await keyTokenService.updateRefreshTokenById(
+      userId,
+      refreshToken,
+      newTokens.refreshToken
+    );
+    return {
+      user: { userId, email },
+      newTokens,
+    };
   };
 }
 

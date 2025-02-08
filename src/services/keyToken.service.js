@@ -60,10 +60,47 @@ class keyTokenService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new NotFoundError("id is invalid!");
     }
-    const result = await keyTokenModel.deleteOne({
-      _id: new Types.ObjectId(id),
+    const results = await keyTokenModel.deleteOne({
+      _id: id,
     });
-    return result;
+    return results;
+  };
+
+  static findByRefreshTokenUsed = async (refreshToken) => {
+    const results = await keyTokenModel
+      .findOne({
+        refreshTokensUsed: refreshToken,
+      })
+      .lean();
+    return results;
+  };
+
+  static findByRefreshToken = async (refreshToken) => {
+    const results = await keyTokenModel
+      .findOne({ refreshToken: refreshToken })
+      .lean();
+    console.log("results: ", results);
+    return results;
+  };
+
+  static deleteKeyById = async (userId) => {
+    const results = await keyTokenModel.deleteOne({ user: userId });
+    return results;
+  };
+
+  static updateRefreshTokenById = async (
+    userId,
+    oldRefreshToken,
+    newRefreshToken
+  ) => {
+    const results = await keyTokenModel.findOneAndUpdate(
+      { user: userId },
+      {
+        $set: { refreshToken: newRefreshToken },
+        $addToSet: { refreshTokensUsed: oldRefreshToken },
+      }
+    );
+    return results;
   };
 }
 
