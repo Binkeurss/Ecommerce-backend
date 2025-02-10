@@ -30,7 +30,7 @@ app.use("/", router);
 
 // handling error
 app.use((req, res, next) => {
-  const error = new Error("Not found!");
+  const error = new Error("Not found router!");
   error.status = 404;
   next(error);
 });

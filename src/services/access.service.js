@@ -118,7 +118,7 @@ class accessService {
         userId: newShop._id,
         publicKey,
         privateKey,
-        refreshToken
+        refreshToken,
       });
       if (!keyStore) {
         throw new BadRequestError("Error: keyStore error!");
@@ -144,10 +144,6 @@ class accessService {
     return delKey;
   };
 
-  /**
-   * check this token used?
-   *
-   */
   static handlerRefreshToken = async (refreshToken) => {
     // Check xem token đã được sử dụng chưa
     const foundToken = await keyTokenService.findByRefreshTokenUsed(
@@ -185,6 +181,40 @@ class accessService {
       { userId, email },
       holderToken.publicKey,
       holderToken.privateKey
+    );
+    // update token
+    await keyTokenService.updateRefreshTokenById(
+      userId,
+      refreshToken,
+      newTokens.refreshToken
+    );
+    return {
+      user: { userId, email },
+      newTokens,
+    };
+  };
+
+  static handlerRefreshTokenV2 = async ({ refreshToken, user, keyStore }) => {
+    const { userId, email } = user;
+
+    if(keyStore.refreshTokensUsed.includes(refreshToken)) {
+      await keyTokenService.deleteKeyById(userId);
+      throw new ForbiddenError("Something wrong happend! Please reSignIn!");
+    }
+
+    if(keyStore.refreshToken !== refreshToken) {
+      throw new AuthFailureError("Shop not registed!");
+    }
+    
+    const foundShop = await shopService.findByEmail({ email });
+    if (!foundShop)
+      throw new AuthFailureError("Shop not registed! (foundShop)");
+
+    // create 1 cặp Token mới
+    const newTokens = await createTokensPair(
+      { userId, email },
+      keyStore.publicKey,
+      keyStore.privateKey
     );
     // update token
     await keyTokenService.updateRefreshTokenById(

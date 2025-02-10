@@ -4,12 +4,27 @@ const accessService = require("../services/access.service");
 
 class AccessController {
   handlerRefreshToken = async (req, res, next) => {
-    const refreshToken = req.body.refreshToken;
+    //v1
+    // const refreshToken = req.body.refreshToken;
+    // try {
+    //   let result = await accessService.handlerRefreshToken(refreshToken);
+    //   return res.status(201).json({
+    //     code: "201",
+    //     metadata: result,
+    //   });
+    // } catch (error) {
+    //   next(error);
+    // }
+    //v2
     try {
-      let result = await accessService.handlerRefreshToken(refreshToken);
+      const results = await accessService.handlerRefreshTokenV2({
+        refreshToken: req.refreshToken,
+        user: req.user,
+        keyStore: req.keyStore,
+      });
       return res.status(201).json({
         code: "201",
-        metadata: result,
+        metadata: results,
       });
     } catch (error) {
       next(error);
