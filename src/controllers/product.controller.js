@@ -33,6 +33,97 @@ class ProductController {
       next(error);
     }
   };
+
+  getAllDraftsForShop = async (req, res, next) => {
+    console.log(req.params);
+    const { id } = req.params;
+    const { limit, page } = req.query;
+    const offset = (page - 1) * limit;
+    try {
+      const results = await ProductFactoryStrategy.findAllDraftsForShop({
+        product_shop: id,
+        limit,
+        offset,
+      });
+      return res.status(200).json({
+        code: "200",
+        message: "Get all drafts for shop!",
+        metadata: results,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getAllPublishedForShop = async (req, res, next) => {
+    const { id } = req.params;
+    const { limit, page } = req.query;
+    const offset = (page - 1) * limit;
+    try {
+      const results = await ProductFactoryStrategy.findAllPublishedForShop({
+        product_shop: id,
+        limit,
+        offset,
+      });
+      return res.status(200).json({
+        code: "200",
+        message: "Get all published for shop!",
+        metadata: results,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  putPublishProductById = async (req, res, next) => {
+    const { id } = req.params;
+    const product_shop = req.keyStore.user;
+    try {
+      const results = await ProductFactoryStrategy.publishProductByShop({
+        product_shop,
+        product_id: id,
+      });
+      return res.status(200).json({
+        code: "200",
+        message: `Publish product has id: ${id}`,
+        metadata: results,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  putUnPublishProductById = async (req, res, next) => {
+    const { id } = req.params;
+    const product_shop = req.keyStore.user;
+    try {
+      const results = await ProductFactoryStrategy.unPublishProductByShop({
+        product_shop,
+        product_id: id,
+      });
+      return res.status(200).json({
+        code: "200",
+        message: `Unpublish product has id: ${id}`,
+        metadata: results,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getListSearchProduct = async (req, res, next) => {
+    const { keySearch } = req.params;
+    try {
+      const results = await ProductFactoryStrategy.searchProducts({keySearch});
+      return res.status(200).json({
+        code: "200",
+        message: `Search: ${keySearch}`,
+        metadata: results
+      })
+    } catch (error) {
+      next(error)
+    }
+  };
 }
 
 module.exports = new ProductController();

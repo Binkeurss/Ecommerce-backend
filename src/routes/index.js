@@ -12,8 +12,8 @@ router.use(apiKey);
 // check permission
 router.use(permission("0000"));
 
+router.use("/v1/api", productRouter);
 router.use("/v1/api", accessRouter);
 router.use("/v1/api", shopRouter);
-router.use("/v1/api", productRouter);
 
 module.exports = router;
