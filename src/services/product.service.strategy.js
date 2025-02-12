@@ -12,8 +12,13 @@ const {
   publishProductByShop,
   findAllPublishedForShop,
   unPublishProductByShop,
-  searchProductByUser
+  searchProductByUser,
+  findAllProducts,
+  findProductById,
+  updateProductById,
 } = require("../models/repositories/product.repo");
+
+const { removeUndefinedNullObject } = require("../utils");
 
 class ProductFactoryStrategy {
   /**
@@ -29,11 +34,23 @@ class ProductFactoryStrategy {
   }
   // Factory Method + Strategy
   static async createProduct(type, payload) {
+    // console.log("type Register: ", type);
+    const productClass = this.productRegistry[type];
+    if (!productClass)
+      throw new BadRequestError(
+        `Invalid Product type: ${type} (createProduct)`
+      );
+    return new productClass(payload).createProduct();
+  }
+
+  static async updateProduct(type, product_id, payload) {
     console.log("type Register: ", type);
     const productClass = this.productRegistry[type];
     if (!productClass)
-      throw new BadRequestError(`Invalid Product type: ${type}`);
-    return new productClass(payload).createProduct();
+      throw new BadRequestError(
+        `Invalid Product type: ${type} (updateProduct)`
+      );
+    return new productClass(payload).updateProduct(product_id);
   }
 
   // get all drafts
@@ -42,7 +59,7 @@ class ProductFactoryStrategy {
     const results = await findAllDraftsForShop({ query, limit, skip });
     return results;
   }
-  
+
   // get all publishs
   static async findAllPublishedForShop({ product_shop, limit = 50, skip }) {
     const query = { product_shop, isPublished: true };
@@ -55,13 +72,35 @@ class ProductFactoryStrategy {
     return results;
   }
   // unPublish a product by seller
-  static async unPublishProductByShop ({product_shop, product_id}) {
-    const results = await unPublishProductByShop({product_shop, product_id});
+  static async unPublishProductByShop({ product_shop, product_id }) {
+    const results = await unPublishProductByShop({ product_shop, product_id });
     return results;
   }
 
-  static async searchProducts({keySearch}) {
-    const results = await searchProductByUser({keySearch});
+  static async searchProducts({ keySearch }) {
+    const results = await searchProductByUser({ keySearch });
+    return results;
+  }
+
+  // Find all products
+  static async findAllProducts({
+    limit = 50,
+    sort = "ctime",
+    skip = 0,
+    filter = { isPublished: true },
+  }) {
+    const results = await findAllProducts({
+      limit: limit,
+      sort: sort,
+      skip: skip,
+      filter: filter,
+      select: ["product_name", "product_price", "product_thumb"],
+    });
+    return results;
+  }
+  // Find product by id
+  static async findProductById({ product_id }) {
+    const results = await findProductById({ product_id, unSelect: ["__v"] });
     return results;
   }
 }
@@ -108,12 +147,21 @@ class Product {
     let results = await productModel.create({ ...this, _id: product_id });
     return results;
   }
+
+  // Update product
+  async updateProduct(product_id, payload) {
+    const results = await updateProductById({
+      product_id,
+      payload,
+      model: productModel,
+    });
+    return results;
+  }
 }
 
 // define sub-class for different product types: Clothing
 class Clothing extends Product {
   async createProduct() {
-    console.log("property: ", this);
     const newClothing = await clothingModel.create({
       ...this.product_attribute,
       product_shop: this.product_shop,
@@ -122,6 +170,21 @@ class Clothing extends Product {
     const newProduct = await super.createProduct(newClothing._id);
     if (!newProduct) throw new BadRequestError("Create new Product error!");
     return newProduct;
+  }
+
+  async updateProduct(product_id) {
+    // 1. remove attr has null underfined
+    // 2. check xem update ở đâu?
+    console.log("this: ", this);
+    const payload = removeUndefinedNullObject(this);
+    console.log("payload: ", payload);
+    if (payload.product_attribute) {
+      // update tại bảng clothing trước
+      await updateProductById({ product_id, payload, model: clothingModel });
+    }
+    // update tại bảng products
+    const updateResults = await super.updateProduct(product_id, payload);
+    return updateResults;
   }
 }
 

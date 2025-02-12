@@ -7,10 +7,10 @@ exports.router = router;
 const asyncHandler = require("../../helpers/asyncHandler");
 const { authenticationV2 } = require("../../auth/authUtils");
 
-// signUp
-router.post("/shop/signup", asyncHandler(accessController.signUp));
-// signIn
-router.post("/shop/signin", asyncHandler(accessController.signIn));
+// // signUp
+// router.post("/shop/signup", asyncHandler(accessController.signUp));
+// // signIn
+// router.post("/shop/signin", asyncHandler(accessController.signIn));
 
 // authentication
 router.use(authenticationV2);

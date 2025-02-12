@@ -11,6 +11,10 @@ router.get(
   "/product/search/:keySearch",
   asyncHandler(ProductController.getListSearchProduct)
 );
+// get all products
+router.get("/products", asyncHandler(ProductController.getAllProducts));
+//get product by id
+router.get("/product/:id", asyncHandler(ProductController.getProductById));
 
 // authentication
 router.use(authenticationV2);
@@ -24,21 +28,24 @@ router.post(
 
 // QUERY
 router.get(
-  "/drafts/all/:id",
+  "/product/drafts/all/:id",
   asyncHandler(ProductController.getAllDraftsForShop)
 );
 router.get(
-  "/published/all/:id",
+  "/product/published/all/:id",
   asyncHandler(ProductController.getAllPublishedForShop)
 );
 router.put(
-  "/publish/:id",
+  "/product/publish/:id",
   asyncHandler(ProductController.putPublishProductById)
 );
 router.put(
-  "/unpublish/:id",
+  "/product/unpublish/:id",
   asyncHandler(ProductController.putUnPublishProductById)
 );
 
-
+router.patch(
+  "/product/:id",
+  asyncHandler(ProductController.patchUpdateProductById)
+);
 module.exports = router;

@@ -6,6 +6,7 @@ const {
   electronicsModel,
   furnitureModel,
 } = require("../product.model");
+const { getSelectData, getUnSelectData } = require("../../utils");
 
 const queryProduct = async ({ query, limit, skip }) => {
   const results = await productModel
@@ -46,7 +47,7 @@ const searchProductByUser = async ({ keySearch }) => {
 
 const publishProductByShop = async ({ product_shop, product_id }) => {
   const foundShop = await productModel.findOne({
-    product_shop: new mongoose.Types.ObjectId(product_shop),
+    product_shop: product_shop,
     _id: product_id,
   });
   if (!foundShop) return null;
@@ -68,10 +69,47 @@ const unPublishProductByShop = async ({ product_shop, product_id }) => {
   return results;
 };
 
+const findAllProducts = async ({ limit, sort, skip, filter, select }) => {
+  const sortBy = sort === "ctime" ? { _id: -1 } : { _id: 1 };
+  const products = productModel
+    .find(filter)
+    .sort(sortBy)
+    .skip(skip)
+    .limit(limit)
+    .select(getSelectData(select))
+    .lean();
+  return products;
+};
+
+const findProductById = async ({ product_id, unSelect }) => {
+  const foundProduct = await productModel
+    .findOne({ _id: product_id })
+    .select(getUnSelectData(unSelect))
+    .lean();
+  return foundProduct;
+};
+
+const updateProductById = async ({
+  product_id,
+  payload,
+  model,
+  isNew = true,
+}) => {
+  const results = await model.findByIdAndUpdate(
+    { _id: product_id },
+    payload,
+    { new: isNew }
+  );
+  return results;
+};
+
 module.exports = {
   findAllDraftsForShop,
   publishProductByShop,
   findAllPublishedForShop,
   unPublishProductByShop,
-  searchProductByUser
+  searchProductByUser,
+  findAllProducts,
+  findProductById,
+  updateProductById
 };
