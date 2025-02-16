@@ -5,6 +5,7 @@ const router = express.Router();
 const accessRouter = require("./access");
 const productRouter = require("./product");
 const shopRouter = require("./shop");
+const discountRouter = require("./discount");
 const { apiKey, permission } = require("../auth/checkAuth");
 const asyncHandler = require("../helpers/asyncHandler");
 const accessController = require("../controllers/access.controller");
@@ -22,5 +23,6 @@ router.post("/v1/api/shop/signin", asyncHandler(accessController.signIn));
 router.use("/v1/api", productRouter);
 router.use("/v1/api", accessRouter);
 router.use("/v1/api", shopRouter);
+router.use("/v1/api", discountRouter);
 
 module.exports = router;
