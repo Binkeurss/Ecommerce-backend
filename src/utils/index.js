@@ -20,7 +20,7 @@ const getUnSelectData = (select = []) => {
  *    d: 1
  *  }
  * }
- * 
+ *
  * db.collection.updateOne({
  *  `c.d`: 1
  * })
@@ -31,8 +31,6 @@ const removeUndefinedNullObject = (obj) => {
   Object.keys(obj).forEach((key) => {
     const current = obj[key];
     if ([null, undefined].includes(current)) {
-      return;
-    } else if (Array.isArray(current)) {
       return;
     } else if (typeof obj[key] === "object") {
       // props là 1 object
