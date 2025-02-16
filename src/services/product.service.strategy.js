@@ -7,6 +7,7 @@ const {
   electronicsModel,
   furnitureModel,
 } = require("../models/product.model");
+const { insertInventory } = require("../models/repositories/inventory.repo");
 const {
   findAllDraftsForShop,
   publishProductByShop,
@@ -144,8 +145,17 @@ class Product {
 
   // Create new product
   async createProduct(product_id) {
-    let results = await productModel.create({ ...this, _id: product_id });
-    return results;
+    let newProduct = await productModel.create({ ...this, _id: product_id });
+    if (newProduct) {
+      // add product_stock in inventory collection
+      const dataInventory = {
+        productId: newProduct._id,
+        shopId: newProduct.product_shop,
+        stock: newProduct.product_quantity,
+      };
+      await insertInventory(dataInventory);
+    }
+    return newProduct;
   }
 
   // Update product
@@ -175,15 +185,21 @@ class Clothing extends Product {
   async updateProduct(product_id) {
     // 1. remove attr has null underfined
     // 2. check xem update ở đâu?
-    console.log("this: ", this);
-    const payload = removeUndefinedNullObject(this);
-    console.log("payload: ", payload);
+    const payload = this;
+    console.log(payload);
     if (payload.product_attribute) {
       // update tại bảng clothing trước
-      await updateProductById({ product_id, payload, model: clothingModel });
+      await updateProductById({
+        product_id,
+        payload: removeUndefinedNullObject(payload.product_attribute),
+        model: clothingModel,
+      });
     }
     // update tại bảng products
-    const updateResults = await super.updateProduct(product_id, payload);
+    const updateResults = await super.updateProduct(
+      product_id,
+      removeUndefinedNullObject(payload)
+    );
     return updateResults;
   }
 }
@@ -201,6 +217,25 @@ class Electronics extends Product {
     if (!newProduct) throw new BadRequestError("Create new Product error!");
     return newProduct;
   }
+  async updateProduct(product_id) {
+    // Kiểm tra payload có product_attribute hay không
+    // Check xem update ở đâu
+    const payload = this;
+    if (payload.product_attribute) {
+      // Update tại collection Electronics
+      await updateProductById({
+        product_id: product_id,
+        payload: removeUndefinedNullObject(payload.product_attribute),
+        model: electronicsModel,
+      });
+    }
+    // Update tại bảng product
+    const updateProduct = await super.updateProduct(
+      product_id,
+      removeUndefinedNullObject(payload)
+    );
+    return updateProduct;
+  }
 }
 
 // define sub-class for different product types: Furniture
@@ -214,6 +249,25 @@ class Furniture extends Product {
     const newProduct = await super.createProduct(newFurniture._id);
     if (!newProduct) throw new BadRequestError("Create new Product error!");
     return newProduct;
+  }
+
+  async updateProduct(product_id) {
+    const payload = this;
+    if (payload.product_attribute) {
+      const payloadFurniture = removeUndefinedNullObject(
+        payload.product_attribute
+      );
+      await updateProductById({
+        product_id: product_id,
+        payload: payloadFurniture,
+        model: furnitureModel,
+      });
+    }
+    const updateProduct = await super.updateProduct(
+      product_id,
+      removeUndefinedNullObject(payload)
+    );
+    return updateProduct;
   }
 }
 
