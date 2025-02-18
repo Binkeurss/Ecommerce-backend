@@ -236,7 +236,6 @@ class discountService {
       discount_code: discount_code,
       shopId: shopId,
     });
-    console.log("foundDiscount: ", foundDiscount);
     if (!foundDiscount) throw new NotFoundError("Discount is not existed!");
 
     const {
@@ -278,8 +277,6 @@ class discountService {
       //     user_use_count++;
       //   }
       // }
-
-      console.log("user_use_count: ", user_use_count);
       if (user_use_count === discount_max_uses_per_user)
         throw new BadRequestError("User has used all the discount code turns!");
     }

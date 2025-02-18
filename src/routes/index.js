@@ -6,6 +6,7 @@ const accessRouter = require("./access");
 const productRouter = require("./product");
 const shopRouter = require("./shop");
 const discountRouter = require("./discount");
+const cartRouter = require("./cart");
 const { apiKey, permission } = require("../auth/checkAuth");
 const asyncHandler = require("../helpers/asyncHandler");
 const accessController = require("../controllers/access.controller");
@@ -24,5 +25,6 @@ router.use("/v1/api", productRouter);
 router.use("/v1/api", accessRouter);
 router.use("/v1/api", shopRouter);
 router.use("/v1/api", discountRouter);
+router.use("/v1/api", cartRouter);
 
 module.exports = router;
