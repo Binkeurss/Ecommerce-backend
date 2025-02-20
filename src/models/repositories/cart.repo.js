@@ -1,5 +1,6 @@
 const { cartModel } = require("../cart.model");
 const { NotFoundError } = require("../../core/error.response");
+const { findProductById } = require("./product.repo");
 
 const createUserCart = async ({ userId, product }) => {
   const query = { cart_userId: userId, cart_state: "active" };
@@ -90,9 +91,38 @@ const removeAllProductInCart = async ({ userId, listProduct }) => {
   return results;
 };
 
+const findCartById = async ({ cartId }) => {
+  const results = await cartModel
+    .findOne({
+      _id: cartId,
+      cart_state: "active",
+    })
+    .lean();
+  return results;
+};
+
+const checkProductByServer = async (products) => {
+  return await Promise.all(
+    products.map(async (product) => {
+      const foundProduct = await findProductById({
+        product_id: product.productId,
+      });
+      if (foundProduct) {
+        return {
+          price: foundProduct.product_price,
+          quantity: product.quantity,
+          productId: foundProduct._id,
+        };
+      }
+    })
+  );
+};
+
 module.exports = {
   createUserCart,
   findCartByUserId,
   updateUserCartQuantity,
   removeAllProductInCart,
+  findCartById,
+  checkProductByServer,
 };

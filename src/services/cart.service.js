@@ -102,7 +102,6 @@ class CartService {
         break;
       }
     }
-    console.log("quantityProduct: ", quantityProduct);
     const query = { cart_userId: userId, cart_state: "active" };
     const updateSet = {
       $pull: {

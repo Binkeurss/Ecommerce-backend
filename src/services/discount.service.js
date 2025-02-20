@@ -331,6 +331,107 @@ class discountService {
     };
   }
 
+  // Get discount code amount === apply code (Dạng review)
+  static async getDiscountAmountReview({ discount_code, userId, shopId, products }) {
+    const foundDiscount = await findDiscountCodeByCodeAndShopId({
+      discount_code: discount_code,
+      shopId: shopId,
+    });
+    if (!foundDiscount) throw new NotFoundError("Discount is not existed!");
+
+    const {
+      discount_is_active,
+      discount_end_date,
+      discount_start_date,
+      discount_min_order_value,
+      discount_max_uses,
+      discount_uses_count,
+      discount_max_uses_per_user,
+      discount_users_count,
+      discount_value,
+      discount_max_value,
+      discount_type,
+      discount_product_ids,
+      discount_applies_to,
+    } = foundDiscount;
+
+    // check active
+    if (!discount_is_active)
+      throw new BadRequestError("Discount is not active!");
+
+    // check date
+    if (new Date() < new Date(discount_start_date))
+      throw new BadRequestError("Discount code is not started!");
+    if (new Date() > new Date(discount_end_date))
+      throw new BadRequestError("Discount code is expired!");
+
+    // check discount code can uses
+    if (discount_max_uses > 0) {
+      if (discount_max_uses <= discount_uses_count)
+        throw new BadRequestError("Discount code has expired (max uses)!");
+      let user_use_count = discount_users_count.reduce((total, user) => {
+        return total + (user === userId ? 1 : 0);
+      }, 0);
+      // for (let i = 0; i < discount_users_count.length; i++) {
+      //   if (discount_users_count[i] === userId) {
+      //     console.log(discount_users_count[i]);
+      //     user_use_count++;
+      //   }
+      // }
+      if (user_use_count === discount_max_uses_per_user)
+        throw new BadRequestError("User has used all the discount code turns!");
+    }
+
+    // check can use discount for product
+    if (discount_applies_to === "specific") {
+      for (let i = 0; i < products.length; i++) {
+        if (!discount_product_ids.includes(products[i].id))
+          throw new NotFoundError(
+            `This product can not use this discount! (id: ${products[i].id})`
+          );
+      }
+    }
+
+    // check min order
+    // product: [{id, price, quantity}]
+    let totalOrder = 0;
+    if (discount_min_order_value > 0) {
+      totalOrder = products.reduce((total, product) => {
+        return total + product.price * product.quantity;
+      }, 0);
+      if (totalOrder < discount_min_order_value)
+        throw new BadRequestError("You are not eligible (minimum value)!");
+    }
+
+    let amount = 0;
+    if (discount_type === "fixed_amount") amount = discount_value;
+    else if (discount_type === "percentage") {
+      let temp = totalOrder * (discount_value / 100);
+      amount = temp < discount_max_value ? temp : discount_max_value;
+    }
+
+    // Update lại discountCode khi được sử dụng
+    const results = await discountModel.findByIdAndUpdate(
+      foundDiscount._id,
+      // {
+      //   $push: {
+      //     discount_users_count: userId,
+      //   },
+      //   $inc: {
+      //     discount_uses_count: 1,
+      //   },
+      // },
+      // { new: true }
+    );
+
+    return {
+      totalOrder: totalOrder,
+      discount: amount,
+      totalPrice: totalOrder - amount,
+      discount_code: results,
+    };
+  }
+
   static async deleteDiscountCode({ discount_code, discount_shopId }) {
     let foundDiscount = await findDiscountCodeByCodeAndShopId({
       discount_code: discount_code,
