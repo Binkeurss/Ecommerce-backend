@@ -97,7 +97,7 @@ class CartService {
     const detailUserCart = await findCartByUserId({ userId: userId });
     let quantityProduct = 0;
     for (let i = 0; i < detailUserCart.cart_products.length; i++) {
-      if (detailUserCart.cart_products[i].productId === productId) {
+      if (detailUserCart.cart_products[i].productId === productId.toString()) {
         quantityProduct = detailUserCart.cart_products[i].quantity;
         break;
       }
@@ -106,7 +106,7 @@ class CartService {
     const updateSet = {
       $pull: {
         cart_products: {
-          productId: productId,
+          productId: productId.toString(),
         },
       },
       $inc: {
