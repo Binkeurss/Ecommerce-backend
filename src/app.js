@@ -5,6 +5,7 @@ const { default: helmet } = require("helmet");
 const compression = require("compression");
 const router = require("./routes");
 const app = express();
+const { initRedis } = require("./dbs/init.redis");
 
 // Tắt ETag
 app.disable("etag");
@@ -24,6 +25,9 @@ app.use(
 require("./dbs/init.mongodb");
 // const { checkOverLoad } = require("./helpers/check.connect");
 // checkOverLoad();
+
+// init Redis
+initRedis();
 
 // init routes
 app.use("/", router);
