@@ -213,14 +213,6 @@ class CheckoutService {
     }
     return newOrder;
   }
-
-  static async getOrdersByUser() {}
-
-  static async getOneOrderById() {}
-
-  static async patchCancelOrderByUser() {}
-
-  static async patchUpdateOrderStatusByShop() {}
 }
 
 module.exports = CheckoutService;
