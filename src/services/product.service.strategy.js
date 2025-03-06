@@ -229,6 +229,8 @@ class Electronics extends Product {
         model: electronicsModel,
       });
     }
+    // console.log("Payload: ", payload);
+
     // Update tại bảng product
     const updateProduct = await super.updateProduct(
       product_id,

@@ -16,6 +16,30 @@ const insertInventory = async ({
   return results;
 };
 
+// Đặt hàng thì phải trừ tồn kho
+const reservationInventory = async ({ productId, quantity, cartId }) => {
+  const query = {
+    inventory_productId: productId,
+    inventory_stock: { $gte: quantity },
+  };
+  const updateSet = {
+    $inc: {
+      inventory_stock: -1 * quantity,
+    },
+    $push: {
+      inventory_reservations: {
+        quantity,
+        cartId,
+        createAt: new Date(),
+      },
+    },
+  };
+  const options = { upsert: true, new: true };
+  const results = await inventoryModel.updateOne(query, updateSet, options);
+  return results;
+};
+
 module.exports = {
   insertInventory,
+  reservationInventory,
 };
