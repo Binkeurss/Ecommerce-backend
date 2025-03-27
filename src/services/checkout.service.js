@@ -153,6 +153,7 @@ class CheckoutService {
       const { quantity, productId } = products[i];
       const keyLock = await acquireLock(productId, quantity, cartId);
       acquireProduct.push(keyLock ? true : false); // Nếu có giá trị false thì thông báo người dùng kiểm tra lại
+      // Nếu keyLock null, tức là đã releaseLock trong acquireLock rồi
       if (keyLock) {
         await releaseLock(keyLock.key, keyLock.uniqueValue);
       }

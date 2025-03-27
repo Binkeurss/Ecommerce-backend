@@ -14,6 +14,10 @@ const { apiKey, permission } = require("../auth/checkAuth");
 const asyncHandler = require("../helpers/asyncHandler");
 const accessController = require("../controllers/access.controller");
 
+const { pushToLogDiscord } = require("../middlewares");
+//add log to discord
+router.use(pushToLogDiscord);
+
 // check apiKey
 router.use(apiKey);
 // check permission
