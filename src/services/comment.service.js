@@ -75,7 +75,7 @@ class CommentService {
       }
     } else {
       const maxRightValue = await findMaxRightValue({
-        comment_productId: parentCommentId,
+        comment_productId: productId,
       });
       if (maxRightValue) {
         rightValue = maxRightValue + 1;
