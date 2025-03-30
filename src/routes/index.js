@@ -10,6 +10,7 @@ const cartRouter = require("./cart");
 const checkoutRouter = require("./checkout");
 const inventoryRouter = require("./inventory");
 const orderRouter = require("./order");
+const commentRouter = require("./comment");
 const { apiKey, permission } = require("../auth/checkAuth");
 const asyncHandler = require("../helpers/asyncHandler");
 const accessController = require("../controllers/access.controller");
@@ -36,5 +37,6 @@ router.use("/v1/api", cartRouter);
 router.use("/v1/api", checkoutRouter);
 router.use("/v1/api", inventoryRouter);
 router.use("/v1/api", orderRouter);
+router.use("/v1/api", commentRouter);
 
 module.exports = router;

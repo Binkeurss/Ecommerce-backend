@@ -13,7 +13,7 @@ class InventoryServiceTest {
           const order = JSON.parse(message);
           await InventoryServiceTest.updateInventory(order.productId, order.quantity);
         } catch (error) {
-          console.error("Error processing message:", error); // Sửa 'err' thành 'error'
+          console.error("Error processing message:", error);
         }
       }
     );
