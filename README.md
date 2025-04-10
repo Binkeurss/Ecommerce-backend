@@ -22,7 +22,7 @@ Welcome to the **Ecommerce Backend** repository! This project provides a robust 
 - **Express.js**
 - **MongoDB**
 - **JWT (JSON Web Tokens)**
-- **dotenv**
+- **Redis**
 
 ## 🚀 Getting Started
 
