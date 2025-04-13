@@ -13,6 +13,7 @@ const ReasonStatusCode = {
 const { ReasonPhrases, StatusCodes } = require("../utils/httpStatusCode");
 
 class ErrorResponse extends Error {
+  // Error không có thuộc tính status.
   constructor(message, status) {
     super(message);
     this.status = status;
@@ -21,8 +22,8 @@ class ErrorResponse extends Error {
 
 class ConflictRequestEror extends ErrorResponse {
   constructor(
-    message = ReasonStatusCode.CONFLICT,
-    status = StatusCode.CONFLICT
+    message = ReasonPhrases.CONFLICT,
+    status = StatusCodes.CONFLICT
   ) {
     super(message, status);
   }
@@ -30,8 +31,8 @@ class ConflictRequestEror extends ErrorResponse {
 
 class BadRequestError extends ErrorResponse {
   constructor(
-    message = ReasonStatusCode.FORBIDDEN,
-    status = StatusCode.FORBIDDEN
+    message = ReasonPhrases.FORBIDDEN,
+    status = StatusCodes.FORBIDDEN
   ) {
     super(message, status);
   }
@@ -40,7 +41,7 @@ class BadRequestError extends ErrorResponse {
 class AuthFailureError extends ErrorResponse {
   constructor(
     message = ReasonPhrases.UNAUTHORIZED,
-    statusCode = StatusCode.UNAUTHORIZED
+    statusCode = StatusCodes.UNAUTHORIZED
   ) {
     super(message, statusCode);
   }
@@ -49,7 +50,7 @@ class AuthFailureError extends ErrorResponse {
 class NotFoundError extends ErrorResponse {
   constructor(
     message = ReasonPhrases.NOT_FOUND,
-    statusCode = StatusCode.NOT_FOUND
+    statusCode = StatusCodes.NOT_FOUND
   ) {
     super(message, statusCode);
   }
@@ -57,7 +58,7 @@ class NotFoundError extends ErrorResponse {
 class ForbiddenError extends ErrorResponse {
   constructor(
     message = ReasonPhrases.FORBIDDEN,
-    statusCode = StatusCode.FORBIDDEN
+    statusCode = StatusCodes.FORBIDDEN
   ) {
     super(message, statusCode);
   }
@@ -66,7 +67,7 @@ class ForbiddenError extends ErrorResponse {
 class RedisErrorResponse extends ErrorResponse {
   constructor(
     message = ReasonPhrases.INTERNAL_SERVER_ERROR,
-    statusCode = StatusCode.INTERNAL_SERVER_ERROR
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR
   ) {
     super(message, statusCode);
   }
@@ -78,5 +79,5 @@ module.exports = {
   AuthFailureError,
   NotFoundError,
   ForbiddenError,
-  RedisErrorResponse
+  RedisErrorResponse,
 };

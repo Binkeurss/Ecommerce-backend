@@ -41,11 +41,11 @@ class CommentService {
       throw new BadRequestError("Length of content must be greater than 0!");
     }
     if (parentCommentId) {
-      const foundComment = await findCommentById({
+      const foundParentComment = await findCommentById({
         commentId: parentCommentId,
       });
-      if (!foundComment) {
-        throw new NotFoundError("Comment is not existed!");
+      if (!foundParentComment) {
+        throw new NotFoundError("Parent comment is not existed!");
       }
     }
     // Bắt đầu logic
@@ -55,9 +55,6 @@ class CommentService {
       const foundParentComment = await findCommentById({
         commentId: parentCommentId,
       });
-      if (!foundParentComment) {
-        throw new NotFoundError("Parent commnet is not existed!");
-      }
       rightValue = foundParentComment.comment_right;
       //Update node
       const updateCommentRightParentsResult = await updateCommentRightParents({
@@ -124,8 +121,6 @@ class CommentService {
       const listComments = await findCommentsByParentId({
         productId: productId,
         parentCommentId: parentCommentId,
-        parentLeft: foundParentComment.comment_left,
-        parentRight: foundParentComment.comment_right,
       });
       return listComments;
     } else throw new BadRequestError("Need parentCommentId to find comments!");

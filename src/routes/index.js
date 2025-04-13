@@ -29,8 +29,8 @@ router.post("/v1/api/shop/signup", asyncHandler(accessController.signUp));
 // signIn
 router.post("/v1/api/shop/signin", asyncHandler(accessController.signIn));
 
-router.use("/v1/api", productRouter);
 router.use("/v1/api", accessRouter);
+router.use("/v1/api", productRouter);
 router.use("/v1/api", shopRouter);
 router.use("/v1/api", discountRouter);
 router.use("/v1/api", cartRouter);

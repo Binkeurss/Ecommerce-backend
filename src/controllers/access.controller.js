@@ -16,11 +16,14 @@ class AccessController {
     //   next(error);
     // }
     //v2
+    const { userId, refreshToken } = req.body;
+    if (!refreshToken || !userId) {
+      throw new BadRequestError("Missing refreshToken or userId");
+    }
     try {
       const results = await accessService.handlerRefreshTokenV2({
-        refreshToken: req.refreshToken,
-        user: req.user,
-        keyStore: req.keyStore,
+        refreshToken: refreshToken,
+        userId: userId,
       });
       return res.status(201).json({
         code: "201",
@@ -33,8 +36,11 @@ class AccessController {
 
   signIn = async (req, res, next) => {
     try {
-      // const { email, password } = req.body;
-      let result = await accessService.signIn(req.body);
+      const { email, password } = req.body;
+      let result = await accessService.signIn({
+        email: email,
+        password: password,
+      });
       return res.status(201).json({
         code: "201",
         metadata: result,
@@ -67,7 +73,6 @@ class AccessController {
       return res.status(200).json({
         code: "200",
         message: "Sign Out success!",
-        metadata: result,
       });
     } catch (error) {
       next(error);

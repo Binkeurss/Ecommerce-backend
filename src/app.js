@@ -53,6 +53,7 @@ app.use((req, res, next) => {
   next(error);
 });
 
+// Middleware lỗi chỉ được kích hoạt khi có lỗi được truyền vào next(error).
 app.use((error, req, res, next) => {
   const statusCode = error.status || 500;
   return res.status(statusCode).json({

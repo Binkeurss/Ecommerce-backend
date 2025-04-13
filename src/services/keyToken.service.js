@@ -38,6 +38,7 @@ class keyTokenService {
         let data = {
           publicKey: results.publicKey,
           privateKey: results.privateKey,
+          refreshToken: results.refreshToken,
         };
         return data;
       } else {
@@ -56,15 +57,30 @@ class keyTokenService {
     return results;
   };
 
-  static removeKeyById = async (id) => {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new NotFoundError("id is invalid!");
+  static removeKeyByIdSignOut = async (keyStore) => {
+    if (!mongoose.Types.ObjectId.isValid(keyStore._id)) {
+      throw new NotFoundError("Id is invalid!");
     }
-    const results = await keyTokenModel.deleteOne({
-      _id: id,
-    });
+    const foundKeyStore = await this.findByUserId(keyStore.user);
+    const filter = {
+      user: keyStore.user,
+    };
+    // console.log("refreshToken: ", foundKeyStore.refreshToken);
+    const update = {
+      $set: { refreshToken: null },
+    };
+    const options = {
+      new: true,
+    };
+    const results = await keyTokenModel.findOneAndUpdate(
+      filter,
+      update,
+      options
+    );
     return results;
   };
+
+  static removeRefreshTokenByUserId = async (userId) => {};
 
   static findByRefreshTokenUsed = async (refreshToken) => {
     const results = await keyTokenModel
@@ -79,7 +95,6 @@ class keyTokenService {
     const results = await keyTokenModel
       .findOne({ refreshToken: refreshToken })
       .lean();
-    console.log("results: ", results);
     return results;
   };
 

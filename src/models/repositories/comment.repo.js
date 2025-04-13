@@ -63,17 +63,13 @@ const updateCommentLeftParents = async ({ productId, rightValue }) => {
   return results;
 };
 
-const findCommentsByParentId = async ({
-  productId,
-  parentCommentId,
-  parentLeft,
-  parentRight,
-}) => {
+const findCommentsByParentId = async ({ productId, parentCommentId }) => {
+  const foundComment = await findCommentById({ commentId: parentCommentId });
   const results = await commentModel
     .find({
       comment_productId: productId,
-      comment_left: { $gt: parentLeft },
-      comment_right: { $lte: parentRight },
+      comment_left: { $gt: foundComment.comment_left },
+      comment_right: { $lte: foundComment.comment_right },
     })
     .sort({ comment_left: 1 });
   return results;

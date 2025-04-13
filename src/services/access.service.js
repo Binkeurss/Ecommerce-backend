@@ -1,6 +1,7 @@
 "use strict";
 
 const shopModel = require("../models/shop.model");
+const JWT = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const keyTokenService = require("./keyToken.service");
@@ -12,6 +13,9 @@ const {
   AuthFailureError,
 } = require("../core/error.response");
 const { shopService } = require("./shop.service");
+const {
+  findKeyTokenByUserId,
+} = require("../models/repositories/keyToken.repo");
 
 const RoleShop = {
   SHOP: "SHOP",
@@ -30,7 +34,7 @@ class accessService {
    * 4 - generate tokens
    * 5 - get data return signin
    */
-  static signIn = async ({ email, password, refreshToken = null }) => {
+  static signIn = async ({ email, password }) => {
     // 1 - check email in dbs
     const foundShop = await shopService.findByEmail({ email });
     if (!foundShop) {
@@ -40,17 +44,27 @@ class accessService {
     const match = bcrypt.compare(password, foundShop.password);
     if (!match) throw new AuthFailureError("Authenticatio error!");
     // 3 - Create AccessToken and RefreshToken
-    const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
-      modulusLength: 4096,
-      publicKeyEncoding: {
-        type: "spki",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs8",
-        format: "pem",
-      },
-    });
+    let publicKey, privateKey;
+    const keyStore = await findKeyTokenByUserId({ userId: foundShop._id });
+    if (!keyStore) {
+      const { privateKey: newPrivateKey, publicKey: newPublicKey } =
+        crypto.generateKeyPairSync("rsa", {
+          modulusLength: 4096,
+          publicKeyEncoding: {
+            type: "spki",
+            format: "pem",
+          },
+          privateKeyEncoding: {
+            type: "pkcs8",
+            format: "pem",
+          },
+        });
+      publicKey = newPublicKey;
+      privateKey = newPrivateKey;
+    } else {
+      publicKey = keyStore.publicKey;
+      privateKey = keyStore.privateKey;
+    }
     // 4 - generate tokens
     const tokens = await createTokensPair(
       { userId: foundShop._id, email },
@@ -58,7 +72,7 @@ class accessService {
       privateKey //PEM
     );
 
-    // Lưu xuống db: Keys (lưu xuống db và đồng thời trả về 2 string publicKey và privateKey)
+    // Lưu xuống db: Keys (lưu xuống db và đồng thời trả về 2 string publicKey và privateKey và refreshToken)
     await keyTokenService.createKeyToken({
       userId: foundShop._id,
       publicKey: publicKey,
@@ -139,9 +153,10 @@ class accessService {
       };
     }
   };
+
   static signOut = async ({ keyStore }) => {
-    const delKey = await keyTokenService.removeKeyById(keyStore._id);
-    return delKey;
+    const sigmOutKey = await keyTokenService.removeKeyByIdSignOut(keyStore);
+    return sigmOutKey;
   };
 
   static handlerRefreshToken = async (refreshToken) => {
@@ -194,34 +209,60 @@ class accessService {
     };
   };
 
-  static handlerRefreshTokenV2 = async ({ refreshToken, user, keyStore }) => {
-    const { userId, email } = user;
+  static handlerRefreshTokenV2 = async ({ refreshToken, userId }) => {
+    console.log("refreshToken: ", refreshToken);
+    // Find keyStore
+    const keyStore = await keyTokenService.findByUserId(userId);
+    if (!keyStore) {
+      throw new NotFoundError("KeyStore not found");
+    }
 
-    if(keyStore.refreshTokensUsed.includes(refreshToken)) {
+    if (keyStore.refreshTokensUsed.includes(refreshToken)) {
       await keyTokenService.deleteKeyById(userId);
       throw new ForbiddenError("Something wrong happend! Please reSignIn!");
     }
 
-    if(keyStore.refreshToken !== refreshToken) {
-      throw new AuthFailureError("Shop not registed!");
+    if (keyStore.refreshToken !== refreshToken) {
+      throw new AuthFailureError("RefreshToken is not correct!");
     }
-    
-    const foundShop = await shopService.findByEmail({ email });
-    if (!foundShop)
-      throw new AuthFailureError("Shop not registed! (foundShop)");
 
-    // create 1 cặp Token mới
+    // Decode refreshToken to get user info
+    let email;
+    try {
+      const decoded = JWT.verify(refreshToken, keyStore.publicKey);
+      if (userId !== decoded.userId) {
+        throw new AuthFailureError("Invalid user in refresh token");
+      }
+      email = decoded.email;
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        throw new AuthFailureError("Refresh token has expired");
+      }
+      throw new AuthFailureError(
+        `Refresh token verification failed: ${error.message}`
+      );
+    }
+
+    // Verify shop exists
+    const foundShop = await shopService.findByEmail({ email });
+    if (!foundShop) {
+      throw new AuthFailureError("Shop not registered!");
+    }
+
+    // Create new tokens
     const newTokens = await createTokensPair(
       { userId, email },
       keyStore.publicKey,
       keyStore.privateKey
     );
-    // update token
+
+    // Update refreshToken with rotation
     await keyTokenService.updateRefreshTokenById(
       userId,
       refreshToken,
       newTokens.refreshToken
     );
+
     return {
       user: { userId, email },
       newTokens,
