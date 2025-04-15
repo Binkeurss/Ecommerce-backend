@@ -74,7 +74,6 @@ class Product {
 // define sub-class for different product types: Clothing
 class Clothing extends Product {
   async createProduct() {
-    console.log("property: ", this);
     const newClothing = await clothingModel.create({
       ...this.product_attribute,
       product_shop: this.product_shop,

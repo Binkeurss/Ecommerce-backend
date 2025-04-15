@@ -155,8 +155,8 @@ class accessService {
   };
 
   static signOut = async ({ keyStore }) => {
-    const sigmOutKey = await keyTokenService.removeKeyByIdSignOut(keyStore);
-    return sigmOutKey;
+    const signOutKey = await keyTokenService.removeKeyByIdSignOut(keyStore);
+    return signOutKey;
   };
 
   static handlerRefreshToken = async (refreshToken) => {

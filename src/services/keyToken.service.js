@@ -58,15 +58,17 @@ class keyTokenService {
   };
 
   static removeKeyByIdSignOut = async (keyStore) => {
+    // Cần xem lại logic
     if (!mongoose.Types.ObjectId.isValid(keyStore._id)) {
       throw new NotFoundError("Id is invalid!");
     }
-    const foundKeyStore = await this.findByUserId(keyStore.user);
+    
     const filter = {
       user: keyStore.user,
     };
     // console.log("refreshToken: ", foundKeyStore.refreshToken);
     const update = {
+      $addToSet: { refreshTokensUsed: keyStore.refreshToken },
       $set: { refreshToken: null },
     };
     const options = {
