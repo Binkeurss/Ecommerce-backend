@@ -6,9 +6,6 @@ class OrderController {
   async getOrdersByUserId(req, res, next) {
     const { userId } = req.params;
     const { limit, page } = req.query;
-    console.log("userId: ", userId);
-    console.log("limit: ", limit);
-    console.log("page: ", page);
     const skip = (page - 1) * limit;
     try {
       const results = await OrderService.getOrdersByUser({

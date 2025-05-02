@@ -1,6 +1,6 @@
 "use strict";
 
-const shopModel = require("../models/shop.model");
+const userModel = require("../models/user.model");
 const JWT = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -12,17 +12,12 @@ const {
   ForbiddenError,
   AuthFailureError,
 } = require("../core/error.response");
-const { shopService } = require("./shop.service");
+const { userService } = require("./shop.service");
 const {
   findKeyTokenByUserId,
 } = require("../models/repositories/keyToken.repo");
 
-const RoleShop = {
-  SHOP: "SHOP",
-  WRITER: "WRITER",
-  EDITOR: "EDITOR",
-  ADMIN: "ADMIN",
-};
+const RoleShop = ["SHOP", "WRITER", "EDITOR", "ADMIN", "CUSTOMER"];
 
 const SALTROUNDS = 10;
 
@@ -36,7 +31,7 @@ class accessService {
    */
   static signIn = async ({ email, password }) => {
     // 1 - check email in dbs
-    const foundShop = await shopService.findByEmail({ email });
+    const foundShop = await userService.findByEmail({ email });
     if (!foundShop) {
       throw new BadRequestError("Shop is not registered!");
     }
@@ -89,20 +84,23 @@ class accessService {
     };
   };
 
-  static signUp = async ({ name, email, password }) => {
+  static signUp = async ({ name, email, password, role }) => {
     // step 1: check email exists?
-    const holderShop = await shopModel.findOne({ email: email }).lean(); // lean sẽ trả về 1 object JS thuần tuý, size < 30 lần
+    const holderShop = await userModel.findOne({ email: email }).lean(); // lean sẽ trả về 1 object JS thuần tuý, size < 30 lần
     if (holderShop) {
       throw new BadRequestError("Error: Shop already registered!");
     }
+    if (!Object.values(RoleShop).includes(role)) {
+      throw new BadRequestError("Error: Role is not existed!");
+    }
     const passwordHash = await bcrypt.hash(password, SALTROUNDS);
-    const newShop = await shopModel.create({
+    const newUser = await userModel.create({
       name: name,
       email: email,
       password: passwordHash,
-      roles: [RoleShop.SHOP],
+      roles: [role],
     });
-    if (newShop) {
+    if (newUser) {
       // created privateKey, publicKey
       // Save to Collection Keys
       const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
@@ -187,7 +185,7 @@ class accessService {
     );
     console.log("[2]--: ", { userId, email });
     // check userId
-    const foundShop = await shopService.findByEmail({ email });
+    const foundShop = await userService.findByEmail({ email });
     if (!foundShop)
       throw new AuthFailureError("Shop not registed! (foundShop)");
 
@@ -244,7 +242,7 @@ class accessService {
     }
 
     // Verify shop exists
-    const foundShop = await shopService.findByEmail({ email });
+    const foundShop = await userService.findByEmail({ email });
     if (!foundShop) {
       throw new AuthFailureError("Shop not registered!");
     }

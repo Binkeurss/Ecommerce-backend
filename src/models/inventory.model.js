@@ -11,7 +11,7 @@ const inventorySchema = new mongoose.Schema(
     },
     inventory_location: { type: String, default: "Unknown" },
     inventory_stock: { type: Number, required: true },
-    inventory_shopId: { type: mongoose.Schema.Types.ObjectId, ref: "Shop" },
+    inventory_shopId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     // Khi người dùng đặt một sản phẩm => lưu vào inventory_reservations và sẽ xử lý logic
     inventory_reservations: { type: Array, default: [] },
     /**

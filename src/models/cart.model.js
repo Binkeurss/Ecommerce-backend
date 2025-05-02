@@ -13,18 +13,7 @@ const cartSchema = new mongoose.Schema(
       enum: ["active", "completed", "failed", "pending"],
       default: "active",
     },
-    cart_products: { type: Array, required: true, default: [] },
-    /**
-     * [{
-     *  productId,
-     *  shopId,
-     *  quantity,
-     *  name,
-     *  price
-     * }]
-     */
-    cart_count_product: { type: Number, default: 0 },
-    cart_userId: { type: Number, required: true },
+    cart_userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   {
     timestamps: true,

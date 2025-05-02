@@ -18,7 +18,7 @@ const productShema = new mongoose.Schema(
       required: true,
       enum: ["Electronics", "Clothing", "Furniture"],
     },
-    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop" },
+    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     product_attribute: { type: mongoose.Schema.Types.Mixed, required: true },
     // more
     product_ratingsAverage: {
@@ -53,7 +53,7 @@ const clothingSchema = new mongoose.Schema(
     brand: { type: String, required: true },
     size: String,
     material: String,
-    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop" },
+    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   {
     collection: "clothing",
@@ -67,7 +67,7 @@ const electronicsSchema = new mongoose.Schema(
     manufacturer: { type: String, required: true },
     model: String,
     color: String,
-    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop" },
+    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   {
     collection: "electronics",
@@ -81,7 +81,7 @@ const furnitureSchema = new mongoose.Schema(
     brand: { type: String, required: true },
     size: String,
     material: String,
-    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop" },
+    product_shop: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   {
     collection: "furniture",

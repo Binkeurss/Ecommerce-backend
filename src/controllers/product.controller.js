@@ -35,7 +35,6 @@ class ProductController {
   };
 
   getAllDraftsForShop = async (req, res, next) => {
-    console.log(req.params);
     const { id } = req.params;
     const { limit, page } = req.query;
     const offset = (page - 1) * limit;

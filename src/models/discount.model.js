@@ -24,7 +24,7 @@ const discountSchema = new mongoose.Schema(
     discount_users_count: { type: Array, default: [] }, // Ai đã sử dụng
     discount_max_uses_per_user: { type: Number, required: true }, // Số lượng cho phép tối đa dùng discount của 1 người
     discount_min_order_value: { type: Number, required: true }, // Số tiền tối thiểu của order để áp dụng discount_applies_to
-    discount_shopId: { type: mongoose.Schema.Types.ObjectId, ref: "Shop" },
+    discount_shopId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     discount_is_active: { type: Boolean, default: true },
     discount_applies_to: {
       type: String,

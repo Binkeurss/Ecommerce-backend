@@ -178,7 +178,6 @@ class discountService {
       discount_id: discount_id,
       payload: validPayload,
     });
-    console.log("update: ", updateDiscount);
     return updateDiscount;
   }
 

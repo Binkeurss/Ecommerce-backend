@@ -1,12 +1,12 @@
 "use strict";
 
-const { shopService } = require("../services/shop.service");
+const { userService } = require("../services/shop.service");
 
-class ShopController {
+class userController {
   getShopByEmail = async (req, res, next) => {
     const { email } = req.body;
     try {
-      const results = await shopService.findByEmail({ email });
+      const results = await userService.findByEmail({ email });
       return res.status(200).json({
         code: "200",
         metadata: results,
@@ -17,4 +17,4 @@ class ShopController {
   };
 }
 
-module.exports = new ShopController();
+module.exports = new userController();

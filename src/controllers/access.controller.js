@@ -56,8 +56,8 @@ class AccessController {
        * 200 OK
        * 201 CREATED
        */
-      const { name, email, password } = req.body;
-      let result = await accessService.signUp({ name, email, password });
+      const { name, email, password, role } = req.body;
+      let result = await accessService.signUp({ name, email, password, role });
       return res.status(201).json({
         code: "201",
         metadata: result,

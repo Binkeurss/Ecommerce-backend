@@ -24,7 +24,6 @@ class CommentController {
 
   getCommentsByParentId = async (req, res, next) => {
     const { productId, parentCommentId } = req.query;
-    console.log("productId, parentCommentId: ", productId, parentCommentId);
     try {
       const results = await CommentService.getCommentsByParentId({
         productId: productId,

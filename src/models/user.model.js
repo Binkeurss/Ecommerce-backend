@@ -1,11 +1,11 @@
 "use strict";
 const mongoose = require("mongoose");
 
-const DOCUMENT_NAME = "Shop";
-const COLLECTION_NAME = "Shops";
+const DOCUMENT_NAME = "User";
+const COLLECTION_NAME = "Users";
 
 //Declare the Schema of the Mongo model
-const shopSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -27,16 +27,16 @@ const shopSchema = new mongoose.Schema(
       default: "inactive",
     },
     verify: {
-      type: mongoose.Schema.Types.Boolean,
+      type: Boolean,
       default: false,
     },
     roles: {
-      type: Array,
-      default: [],
+      type: [String],
+      enum: ["SHOP", "WRITER", "EDITOR", "ADMIN", "CUSTOMER"],
+      default: ["CUSTOMER"],
     },
   },
   { timestamps: true, collection: COLLECTION_NAME }
 );
 
-//Export the model
-module.exports = mongoose.model(DOCUMENT_NAME, shopSchema);
+module.exports = mongoose.model(DOCUMENT_NAME, userSchema);
