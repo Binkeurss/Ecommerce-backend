@@ -10,12 +10,8 @@ router.use(authenticationV2);
 
 router.post("/cart/add", asyncHandler(CartController.postAddToCart));
 router.post(
-  "/cart/reduce",
-  asyncHandler(CartController.postReduceProductQuantity)
-);
-router.post(
-  "/cart/increase",
-  asyncHandler(CartController.postIncreaseProductQuantity)
+  "/cart/update-quantity",
+  asyncHandler(CartController.postUpdateProductQuantity)
 );
 router.get("/cart/:userId", asyncHandler(CartController.getListUserCart));
 router.delete("/cart-deleteItem", asyncHandler(CartController.deleteCartItem));

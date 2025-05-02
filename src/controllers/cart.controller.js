@@ -4,15 +4,15 @@ const CartService = require("../services/cart.service");
 
 class CartController {
   async postAddToCart(req, res, next) {
-    const { userId, product } = req.body;
+    const { userId, products } = req.body;
     try {
       const results = await CartService.addToCart({
         userId: userId,
-        product: product,
+        products: products,
       });
       return res.status(201).json({
         code: "201",
-        message: "Add product to cart succesfully!",
+        message: "Add products to cart succesfully!",
         metadata: results,
       });
     } catch (error) {
@@ -20,33 +20,17 @@ class CartController {
     }
   }
 
-  async postReduceProductQuantity(req, res, next) {
-    const { userId, shop_order_ids } = req.body;
+  async postUpdateProductQuantity(req, res, next) {
+    const { userId, productId, newQuantity } = req.body;
     try {
-      const results = await CartService.ReduceIncreaseProductToCart({
+      const results = await CartService.updateProductQuantityToCart({
         userId: userId,
-        shop_order_ids: shop_order_ids,
+        productId: productId,
+        newQuantity: newQuantity,
       });
       return res.status(201).json({
         code: "201",
-        message: "Reduce product quantity successfully!",
-        metadata: results,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async postIncreaseProductQuantity(req, res, next) {
-    const { userId, shop_order_ids } = req.body;
-    try {
-      const results = await CartService.ReduceIncreaseProductToCart({
-        userId: userId,
-        shop_order_ids: shop_order_ids,
-      });
-      return res.status(201).json({
-        code: "201",
-        message: "Increase product quantity successfully!",
+        message: "Update product quantity successfully!",
         metadata: results,
       });
     } catch (error) {

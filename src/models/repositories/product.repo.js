@@ -95,12 +95,19 @@ const updateProductById = async ({
   model,
   isNew = true,
 }) => {
-  const results = await model.findByIdAndUpdate(
-    { _id: product_id },
-    payload,
-    { new: isNew }
-  );
+  const results = await model.findByIdAndUpdate({ _id: product_id }, payload, {
+    new: isNew,
+  });
   return results;
+};
+
+const findPriceProductByProductId = async ({ productId }) => {
+  const results = await productModel
+    .find({ _id: productId })
+    .select("product_price")
+    .lean()
+    .exec();
+  return results[0]?.product_price || null;
 };
 
 module.exports = {
@@ -111,5 +118,6 @@ module.exports = {
   searchProductByUser,
   findAllProducts,
   findProductById,
-  updateProductById
+  updateProductById,
+  findPriceProductByProductId,
 };

@@ -1,14 +1,21 @@
 "use strict";
 
+const mongoose = require("mongoose");
 const { findProductById } = require("../models/repositories/product.repo");
 const { BadRequestError, NotFoundError } = require("../core/error.response");
-const { cartModel } = require("../models/cart.model");
 const {
   createUserCart,
   findCartByUserId,
   updateUserCartQuantity,
-  removeAllProductInCart,
+  getListProductsInCart,
 } = require("../models/repositories/cart.repo");
+const {
+  findProductItem,
+  deleteProductItem,
+  updateQuantityProductDetailCart,
+  deleteAllProductItem,
+} = require("../models/repositories/detailCart.repo");
+const { findUserByUserId } = require("../models/repositories/user.repo");
 
 /**
  * Key features: Cart service
@@ -24,112 +31,99 @@ class CartService {
   // Khi bấm thêm vào giỏ hàng => 2TH:
   // 1. Tạo mới giỏ hàng và thêm sản phẩm
   // 2. Đã có giỏ hàng => tìm sản phẩm => tăng quantity (nếu có sp)
-  static async addToCart({ userId, product = {} }) {
-    // check cart tồn tại
+  static async addToCart({ userId, products = [] }) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new BadRequestError("Invalid userId!");
+    }
     const userCart = await findCartByUserId({ userId: userId });
     if (!userCart) {
       const results = await createUserCart({
         userId: userId,
-        product: product,
+        products: products,
       });
       return results;
     }
-    // Nếu có giỏ hàng rồi nhưng chưa có sản phẩm
-    if (!userCart.cart_products.length) {
-      userCart.cart_products.push(product);
-      userCart.cart_count_product += product.quantity;
-      return await userCart.save();
-    }
 
-    // Nếu có giỏ hàng và tồn tài sản phẩm được thêm vào
+    // Nếu có giỏ hàng
     const results = await updateUserCartQuantity({
-      userId: userId,
-      product: product,
+      cartId: userCart._id,
+      products: products,
     });
     return results;
   }
 
-  /**
-   * shop_order_ids: [{
-   *  shopId,
-   *  item_products: [
-   *    {
-   *      quantity,
-   *      price,
-   *      shopId,
-   *      old_quantity,
-   *      productId
-   *    }
-   *  ],
-   *  version
-   * }]
-   */
-
-  static async ReduceIncreaseProductToCart({ userId, shop_order_ids }) {
-    const { productId, quantity, old_quantity } =
-      shop_order_ids[0]?.item_products[0];
+  static async updateProductQuantityToCart({ userId, productId, newQuantity }) {
     const foundProduct = await findProductById({ product_id: productId });
     if (!foundProduct) {
       throw new NotFoundError(`Not found the product has id: ${productId}`);
     }
-    // compare
-    if (foundProduct.product_shop.toString() !== shop_order_ids[0]?.shopId) {
-      throw new BadRequestError("This product is not belong to the shop");
+
+    const foundUser = await findUserByUserId({ userId: userId });
+    if (!foundUser) {
+      throw new NotFoundError(`Not found the user has id: ${userId}`);
     }
-    if (quantity === 0) {
-      const results = await this.deleteUserCart({
-        userId: userId,
-        productId: productId,
-      });
-      return results;
+
+    const foundCart = await findCartByUserId({ userId: userId });
+    if (!foundCart) {
+      throw new NotFoundError(`Cart is not existed!`);
     }
-    const results = await updateUserCartQuantity({
-      userId: userId,
-      product: {
-        productId: productId,
-        quantity: quantity - old_quantity,
-      },
+
+    const foundProductItem = await findProductItem({
+      cartId: foundCart._id,
+      productId: productId,
     });
+    if (!foundProductItem) {
+      throw new NotFoundError(`Product is not in Cart!`);
+    }
+
+    const results = await updateQuantityProductDetailCart({
+      cartId: foundCart._id,
+      productId: productId,
+      quantity: newQuantity - foundProductItem.detailCart_quantity,
+      shopId: foundProduct.product_shop,
+    });
+
     return results;
   }
 
   static async deleteUserCartItem({ userId, productId }) {
-    const detailUserCart = await findCartByUserId({ userId: userId });
-    let quantityProduct = 0;
-    for (let i = 0; i < detailUserCart.cart_products.length; i++) {
-      if (detailUserCart.cart_products[i].productId === productId.toString()) {
-        quantityProduct = detailUserCart.cart_products[i].quantity;
-        break;
-      }
+    const foundCart = await findCartByUserId({ userId: userId });
+    if (!foundCart) {
+      throw new NotFoundError("Cart is not existed!");
     }
-    const query = { cart_userId: userId, cart_state: "active" };
-    const updateSet = {
-      $pull: {
-        cart_products: {
-          productId: productId.toString(),
-        },
-      },
-      $inc: {
-        cart_count_product: -1 * quantityProduct,
-      },
-    };
-    const results = await cartModel.updateOne(query, updateSet, { new: true });
+    const foundProductItem = await findProductItem({
+      cartId: foundCart._id,
+      productId: productId,
+    });
+    if (!foundProductItem) {
+      throw new NotFoundError("Product Item is not existed!");
+    }
+    const results = await deleteProductItem({
+      cartId: foundCart._id,
+      productId: productId,
+    });
     return results;
   }
 
   static async getListUserCart({ userId }) {
-    let results = await cartModel.findOne({ cart_userId: +userId }).lean();
-    return results;
+    const foundCart = await findCartByUserId({ userId: userId });
+    if (!foundCart) {
+      throw new NotFoundError("Cart is not existed!");
+    }
+    const results = await getListProductsInCart({ cartId: foundCart._id });
+    return {
+      userId: foundCart.cart_userId,
+      products: results,
+    };
   }
 
   static async deleteUserCart({ userId }) {
     const foundCart = await findCartByUserId({ userId: userId });
     if (!foundCart) {
-      throw new NotFoundError("Cart không tồn tại!");
+      throw new NotFoundError("Cart is not existed!");
     }
-    const results = await removeAllProductInCart({
-      userId: userId,
-      listProduct: foundCart,
+    const results = await deleteAllProductItem({
+      cartId: foundCart._id,
     });
     return results;
   }

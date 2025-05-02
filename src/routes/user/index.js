@@ -1,13 +1,13 @@
 "use strict";
 const express = require("express");
 const router = express.Router();
-const ShopController = require("../../controllers/shop.controller");
+const userController = require("../../controllers/user.controller");
 const asyncHandler = require("../../helpers/asyncHandler");
 const { authenticationV2 } = require("../../auth/authUtils");
 
 // authentication
 router.use(authenticationV2);
 
-router.get("/shop-email", asyncHandler(ShopController.getShopByEmail));
+router.get("/user-email", asyncHandler(userController.getShopByEmail));
 
 module.exports = router;
