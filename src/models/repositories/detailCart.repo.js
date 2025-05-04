@@ -65,6 +65,11 @@ const findProductItem = async ({ cartId, productId }) => {
   return results;
 };
 
+const findProductItemByDetailCartId = async ({ detailCartId }) => {
+  const results = await detailCartModel.findById(detailCartId);
+  return results;
+};
+
 const deleteProductItem = async ({ cartId, productId }) => {
   const filter = {
     detailCart_CartId: cartId,
@@ -87,6 +92,7 @@ module.exports = {
   updateQuantityProductDetailCart,
   getListProductsInDetailCartByCartId,
   findProductItem,
+  findProductItemByDetailCartId,
   deleteProductItem,
   deleteAllProductItem,
 };

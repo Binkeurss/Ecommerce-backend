@@ -20,42 +20,6 @@ const {
 const { productModel } = require("../models/product.model");
 
 class CheckoutService {
-  /**
-   * {
-   *  cartId,
-   *  userId,
-   *  shop_order_ids: [
-   *    {
-   *      shopId,
-   *      shop_discounts: [],
-   *      items_products: [
-   *        price,
-   *        quantity,
-   *        productId
-   *      ]
-   *    },
-   *    {
-   *      shopId,
-   *      shop_discounts: [
-   *        {
-   *          ShopId,
-   *          discountId,
-   *          discount_code,
-   *        }
-   *      ],
-   *      items_products: [
-   *        price,
-   *        quantity,
-   *        productId
-   *      ]
-   *    },
-   *  ]
-   * }
-   */
-  // Mục đích của hàm này là tạo ra object chứa 3 thông tin:
-  // - shop_order_ids: Thông tin các sản phẩm ban đầu
-  // - shop_order_ids_new: Thông tin tổng giá trị, giá trị sau khi áp dụng discount của từng cụm products
-  // - checkout_order: Thông tin cuối cùng
   static async checkoutReview({ cartId, userId, shop_order_ids }) {
     // Check cartId tồn tại hay không
     const foundCart = await findCartById({ cartId: cartId });

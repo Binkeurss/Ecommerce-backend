@@ -31,6 +31,12 @@ router.post(
   "/discount-amount",
   asyncHandler(DiscountController.postDiscountAmount)
 );
+
+// get discount amount review - not apply discount
+router.get(
+  "/discount-amount-review",
+  asyncHandler(DiscountController.getDiscountAmountReview)
+);
 // soft delete
 router.delete("/discount", asyncHandler(DiscountController.deleteDiscountCode));
 // Cancel discount code

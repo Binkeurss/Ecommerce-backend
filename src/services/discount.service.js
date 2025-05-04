@@ -26,6 +26,9 @@ const {
 
 const { removeUndefinedNullObject } = require("../utils");
 const discountModel = require("../models/discount.model");
+const {
+  findProductItemByDetailCartId,
+} = require("../models/repositories/detailCart.repo");
 
 class discountService {
   static async createDiscountCode(payload) {
@@ -86,6 +89,31 @@ class discountService {
         `Invalid discount value (discount type: ${discount_type})`
       );
     }
+
+    //check discount_applies_to
+    if (discount_applies_to == "specific") {
+      if (discount_product_ids.length === 0) {
+        throw new BadRequestError(`None products cant apply this discount!`);
+      }
+      for (let i = 0; i < discount_product_ids.length; i++) {
+        const foundProduct = await findProductById({
+          product_id: discount_product_ids[i],
+        });
+        if (!foundProduct) {
+          throw new NotFoundError(
+            `Product is not existed! (id: ${discount_product_ids[i]})`
+          );
+        }
+        if (
+          foundProduct.product_shop.toString() !== discount_shopId.toString()
+        ) {
+          throw new NotFoundError(
+            `Product is not existed in shop! (id: ${discount_product_ids[i]})`
+          );
+        }
+      }
+    }
+
     const newDiscount = await createDiscountCode({
       discount_name: discount_name,
       discount_description: discount_description,
@@ -109,6 +137,7 @@ class discountService {
 
   static async updateDiscountCode(discount_id, payload) {
     let validPayload = removeUndefinedNullObject(payload);
+    console.log("validPayload: ", validPayload);
     let foundDiscount = await findDiscountCodeById({ discount_id });
     // check discount code
     if (validPayload.discount_code) {
@@ -140,7 +169,7 @@ class discountService {
         startDate = foundDiscount.discount_start_date;
         endDate = new Date(validPayload.discount_end_date);
       }
-      if (currentDate >= startDate || currentDate >= endDate) {
+      if (currentDate >= endDate) {
         throw new BadRequestError(
           "Discount code has expired! - validate Payload"
         );
@@ -230,12 +259,27 @@ class discountService {
   }
 
   // Get discount code amount === apply code
-  static async getDiscountAmount({ discount_code, userId, shopId, products }) {
+  static async postDiscountAmount({ discount_code, userId, shopId, products }) {
     const foundDiscount = await findDiscountCodeByCodeAndShopId({
       discount_code: discount_code,
       shopId: shopId,
     });
     if (!foundDiscount) throw new NotFoundError("Discount is not existed!");
+    // get list detail cart
+    // products: [detailCartId] {list}
+    let productList = [];
+    for (let i = 0; i < products.length; i++) {
+      const foundProduct = await findProductItemByDetailCartId({
+        detailCartId: products[i],
+      });
+      if (!foundProduct) {
+        throw new NotFoundError("Product is not existed in Shop!");
+      }
+      if (foundProduct.detailCart_ShopId.toString() !== shopId.toString()) {
+        throw new BadRequestError("Product is not belong to Shop!");
+      }
+      productList.push(foundProduct);
+    }
 
     const {
       discount_is_active,
@@ -270,32 +314,27 @@ class discountService {
       let user_use_count = discount_users_count.reduce((total, user) => {
         return total + (user === userId ? 1 : 0);
       }, 0);
-      // for (let i = 0; i < discount_users_count.length; i++) {
-      //   if (discount_users_count[i] === userId) {
-      //     console.log(discount_users_count[i]);
-      //     user_use_count++;
-      //   }
-      // }
       if (user_use_count === discount_max_uses_per_user)
         throw new BadRequestError("User has used all the discount code turns!");
     }
 
     // check can use discount for product
     if (discount_applies_to === "specific") {
-      for (let i = 0; i < products.length; i++) {
-        if (!discount_product_ids.includes(products[i].id))
+      for (let i = 0; i < productList.length; i++) {
+        if (!discount_product_ids.includes(productList[i].detailCart_productId))
           throw new NotFoundError(
-            `This product can not use this discount! (id: ${products[i].id})`
+            `This product can not use this discount! (id: ${productList[i].detailCart_productId})`
           );
       }
     }
 
     // check min order
-    // product: [{id, price, quantity}]
     let totalOrder = 0;
     if (discount_min_order_value > 0) {
-      totalOrder = products.reduce((total, product) => {
-        return total + product.price * product.quantity;
+      totalOrder = productList.reduce((total, product) => {
+        return (
+          total + product.detailCart_quantity * product.detailCart_unitPrice
+        );
       }, 0);
       if (totalOrder < discount_min_order_value)
         throw new BadRequestError("You are not eligible (minimum value)!");
@@ -331,12 +370,32 @@ class discountService {
   }
 
   // Get discount code amount === apply code (Dạng review)
-  static async getDiscountAmountReview({ discount_code, userId, shopId, products }) {
+  static async getDiscountAmountReview({
+    discount_code,
+    userId,
+    shopId,
+    products,
+  }) {
     const foundDiscount = await findDiscountCodeByCodeAndShopId({
       discount_code: discount_code,
       shopId: shopId,
     });
     if (!foundDiscount) throw new NotFoundError("Discount is not existed!");
+    // get list detail cart
+    // products: [detailCartId] {list}
+    let productList = [];
+    for (let i = 0; i < products.length; i++) {
+      const foundProduct = await findProductItemByDetailCartId({
+        detailCartId: products[i],
+      });
+      if (!foundProduct) {
+        throw new NotFoundError("Product is not existed in Shop!");
+      }
+      if (foundProduct.detailCart_ShopId.toString() !== shopId.toString()) {
+        throw new BadRequestError("Product is not belong to Shop!");
+      }
+      productList.push(foundProduct);
+    }
 
     const {
       discount_is_active,
@@ -371,32 +430,27 @@ class discountService {
       let user_use_count = discount_users_count.reduce((total, user) => {
         return total + (user === userId ? 1 : 0);
       }, 0);
-      // for (let i = 0; i < discount_users_count.length; i++) {
-      //   if (discount_users_count[i] === userId) {
-      //     console.log(discount_users_count[i]);
-      //     user_use_count++;
-      //   }
-      // }
       if (user_use_count === discount_max_uses_per_user)
         throw new BadRequestError("User has used all the discount code turns!");
     }
 
     // check can use discount for product
     if (discount_applies_to === "specific") {
-      for (let i = 0; i < products.length; i++) {
-        if (!discount_product_ids.includes(products[i].id))
+      for (let i = 0; i < productList.length; i++) {
+        if (!discount_product_ids.includes(productList[i].detailCart_productId))
           throw new NotFoundError(
-            `This product can not use this discount! (id: ${products[i].id})`
+            `This product can not use this discount! (id: ${productList[i].detailCart_productId})`
           );
       }
     }
 
     // check min order
-    // product: [{id, price, quantity}]
     let totalOrder = 0;
     if (discount_min_order_value > 0) {
-      totalOrder = products.reduce((total, product) => {
-        return total + product.price * product.quantity;
+      totalOrder = productList.reduce((total, product) => {
+        return (
+          total + product.detailCart_quantity * product.detailCart_unitPrice
+        );
       }, 0);
       if (totalOrder < discount_min_order_value)
         throw new BadRequestError("You are not eligible (minimum value)!");
@@ -409,25 +463,10 @@ class discountService {
       amount = temp < discount_max_value ? temp : discount_max_value;
     }
 
-    // Update lại discountCode khi được sử dụng
-    const results = await discountModel.findByIdAndUpdate(
-      foundDiscount._id,
-      // {
-      //   $push: {
-      //     discount_users_count: userId,
-      //   },
-      //   $inc: {
-      //     discount_uses_count: 1,
-      //   },
-      // },
-      // { new: true }
-    );
-
     return {
       totalOrder: totalOrder,
       discount: amount,
       totalPrice: totalOrder - amount,
-      discount_code: results,
     };
   }
 

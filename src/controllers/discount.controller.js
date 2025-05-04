@@ -16,6 +16,7 @@ class DiscountController {
       next(error);
     }
   };
+
   patchUpdateDiscount = async (req, res, next) => {
     const { id: discount_id } = req.params;
     const { payload } = req.body;
@@ -33,6 +34,7 @@ class DiscountController {
       next(error);
     }
   };
+
   getAllDiscountsShop = async (req, res, next) => {
     const { shopId } = req.params;
     const { limit, page } = req.query;
@@ -53,6 +55,7 @@ class DiscountController {
       next(error);
     }
   };
+
   getAllProductsDiscountCode = async (req, res, next) => {
     const { discount_code, shopId, userId } = req.body;
     const { limit, page } = req.query;
@@ -78,7 +81,7 @@ class DiscountController {
   postDiscountAmount = async (req, res, next) => {
     const { discount_code, userId, shopId, products } = req.body;
     try {
-      const results = await discountService.getDiscountAmount({
+      const results = await discountService.postDiscountAmount({
         discount_code: discount_code,
         userId: userId,
         shopId: shopId,
@@ -87,6 +90,25 @@ class DiscountController {
       return res.status(200).json({
         code: "200",
         message: `Get discount amount succesfully!`,
+        metadata: results,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getDiscountAmountReview = async (req, res, next) => {
+    const { discount_code, userId, shopId, products } = req.body;
+    try {
+      const results = await discountService.getDiscountAmountReview({
+        discount_code: discount_code,
+        userId: userId,
+        shopId: shopId,
+        products: products,
+      });
+      return res.status(200).json({
+        code: "200",
+        message: "Get discount amount review successfully!",
         metadata: results,
       });
     } catch (error) {
