@@ -1,6 +1,6 @@
 "use strict";
 
-const { userService } = require("../services/shop.service");
+const { userService } = require("../services/user.service");
 
 class userController {
   getShopByEmail = async (req, res, next) => {

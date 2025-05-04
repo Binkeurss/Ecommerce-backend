@@ -6,7 +6,7 @@ class userService {
   static findByEmail = async ({ email }) => {
     let results = await userModel
       .findOne({ email })
-      .select("_id name email status verify roles")
+      .select("_id name email status verify roles password")
       .lean();
     return results;
   };

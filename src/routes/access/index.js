@@ -13,7 +13,7 @@ const { authenticationV2 } = require("../../auth/authUtils");
 // router.post("/v1/api/shop/signin", asyncHandler(accessController.signIn));
 // handlerRefreshToken
 router.post(
-  "/shop/handlerRefreshToken",
+  "/user/handlerRefreshToken",
   asyncHandler(accessController.handlerRefreshToken)
 );
 
@@ -21,6 +21,6 @@ router.post(
 router.use(authenticationV2);
 
 // signOut
-router.post("/shop/signout", asyncHandler(accessController.signOut));
+router.post("/user/signout", asyncHandler(accessController.signOut));
 
 module.exports = router;

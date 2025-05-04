@@ -12,7 +12,7 @@ const {
   ForbiddenError,
   AuthFailureError,
 } = require("../core/error.response");
-const { userService } = require("./shop.service");
+const { userService } = require("./user.service");
 const {
   findKeyTokenByUserId,
 } = require("../models/repositories/keyToken.repo");
@@ -35,6 +35,7 @@ class accessService {
     if (!foundShop) {
       throw new BadRequestError("Shop is not registered!");
     }
+    console.log("foundShop: ", foundShop);
     // 2 - match password
     const match = bcrypt.compare(password, foundShop.password);
     if (!match) throw new AuthFailureError("Authenticatio error!");
